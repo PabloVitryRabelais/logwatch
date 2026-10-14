@@ -2,7 +2,9 @@
 
 Lancer :  pytest test_logwatch.py -v
 """
-from logwatch import parser_ligne, d1_requetes_par_ip, d2_brute_force, d3_scan
+from logwatch import parser_ligne, d1_requetes_par_ip, d2_brute_force, d3_scan, d4_pic_trafic
+from pathlib import Path
+from logwatch import lire_log
 
 LIGNE_OK = ('203.0.113.7 - - [03/Sep/2026:10:15:32 +0200] "GET /index.html HTTP/1.1" '
             '200 5123 "-" "Mozilla/5.0" 1523')
@@ -54,3 +56,9 @@ def test_d3_ignore_url_legitime():
     entrees = [parser_ligne(_ligne("10.0.0.5", "GET", page, 200, minute=i))
                for i, page in enumerate(pages)]
     assert d3_scan(entrees, seuil=5) == []
+
+def test_d4_aucune_alerte_de_depassement_seuil_requete():
+    """Un pic de trafic"""
+    chemin_log = Path(__file__).with_name("sample-logs.log")
+    entrees, ignorees = lire_log(chemin_log)
+    assert d4_pic_trafic(entrees, 100, 5)["alerte"] == True
